@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+      tags:
+        - '*' # Run on any tag event
+  pull_request: {}
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout triggering commit
+        uses: actions/checkout@v4
+
+      - shell: Update System Apt Cache
+        run: sudo apt-get update
+
+      - name: Install Multi-Arch Docker Build Support
+        run: sudo apt-get install -y qemu-user-static binfmt-support
+
+      - name: Create a Docker builder instance and make it the active instance
+        run: docker buildx create --use
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clone Icinga 2 for the same tag version
+        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/Icinga/icinga2.git
+
+      - name: Build and Push
+        run: ./build.bash ./icinga2 push ${{ github.ref_name }}
+        env:
+            REPO_OWNER: ${{ github.repository_owner }}
