@@ -1,10 +1,7 @@
-name: Build and Publish
+name: Build
 
 on:
-  push:
-      tags:
-        - '*' # Run on any tag event
-  pull_request: {}
+  push
 
 jobs:
   build:
@@ -28,10 +25,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clone Icinga 2 for the same tag version
-        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/Icinga/icinga2.git
+      - name: Clone Icinga 2
+        run: git clone --depth 1 https://github.com/Icinga/icinga2.git
 
       - name: Build and Push
-        run: ./build.bash ./icinga2 push ${{ github.ref_name }}
+        run: ./build.bash ./icinga2 all
         env:
             REPO_OWNER: ${{ github.repository_owner }}
